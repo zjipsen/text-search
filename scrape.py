@@ -33,55 +33,75 @@ TEXT POST (or photo/video within a text post):
 	<li class="post_info">
 """
 
-def format_nav_string(str):
+
+def encode_string(str):
+	""" 
+	takes in a NavigableString (special type from BeautifulSoup4) and converts to ascii encoded python string
+	"""
 	return unicode(str).encode('ascii','ignore')
 
 
-url = 'https://zanzaban.tumblr.com'
-response = requests.get(url)
-html = response.content
+def format_strings(str):
+	"""
+	takes in a python string and returns array of individual words
 
-soup = BeautifulSoup(html, 'html.parser')
-#listelement = soup.find_all('li', attrs={'class':'text-body'})
-textposts = soup.find_all('ul', attrs={'class':'post-content', 'class': 'type-text'})
-
-
-for post in textposts:
-	textbody = post.find('li', class_="text-body")
-	# caption = post.find('li', attrs={'class':'caption'})
- 	text = []
-	# p = content.find_all('p')
-	if (textbody != None):
-		for p in textbody.find_all('p'):
-			string = p.string
-			if (string != None):
-				text.append(format_nav_string(string))
-
-		for a in textbody.find_all('a'):
-			print(a.class_)
-			string = a.string
-			if (string != None):
-				text.append(format_nav_string(string))
-
-		for h1 in textbody.find_all('h1'):
-			string = h1.string
-			if (string != None):
-				text.append(format_nav_string(string))
-
-		for h2 in textbody.find_all('h2'):
-			string = h2.string
-			if (string != None):
-				text.append(format_nav_string(string))
+	TODO: remove punctuation/numerals/most common words (the, a, it)/capitalization/special chars like \n\n to ensure standardized searching
+	"""
+	return [encode_string(str)]
 
 
-	postID = post['id']
-	# print(post)
-	print('$$$$$')
-	# print(text)
+def find_all_text(markup, tag):
+	"""
+	takes in the beautifulSoup object and finds all text contained in all tags of type tag (for example, <p/> or <a/>)
+	"""
+	text = []
+
+	for elem in markup.find_all(tag):
+		string = elem.string
+		if (string != None):
+			text.extend(format_strings(string))
+	return text
+
+def find_text_on_img(markup, tag):
+	text = []
+
+	for elem in markup.find_all(tag):
+		if (u'alt' in elem.attrs):
+			alt_text = elem.attrs[u'alt']
+			text.extend(format_strings(alt_text))
+		string = elem.string
+		if (string != None):
+			text.extend(format_strings(string))
+	return text
+
+def main():
+	url = 'https://zanzaban.tumblr.com'
+	response = requests.get(url)
+	html = response.content
+
+	soup = BeautifulSoup(html, 'html.parser')
+	#listelement = soup.find_all('li', attrs={'class':'text-body'})
+	textposts = soup.find_all('ul', attrs={'class':'post-content'})
+
+	for post in textposts:
+		textbody = post.find('li')
+		# caption = post.find('li', attrs={'class':'caption'})
+		text = []
+		# p = content.find_all('p')
+		if (textbody != None):
+			text = text + find_all_text(textbody, 'p')
+			text = text + find_all_text(textbody, 'a')
+			text = text + find_all_text(textbody, 'h1')
+			text = text + find_all_text(textbody, 'h2')
+			text = text + find_text_on_img(textbody, 'img')
+
+		postID = post['id']
+		# print(post)
+		print('$$$$$')
+		print(text)
 
 
-
-
+main()
 
 
 
