@@ -34,6 +34,21 @@ TEXT POST (or photo/video within a text post):
 """
 
 
+def run_tests():
+	test_format_strings("this is a test",['this','is','a','test'])
+	test_format_strings("This Is ANOTHER TEST",['this','is','another','test'])
+	test_format_strings("This. ,Is, .ANOTHER. TEST.",['this','is','another','test'])
+	test_format_strings("\n\nThis is a test again\n\n.", ['this','is','a','test', 'again'])
+
+def test_format_strings(test_input, expected_output):
+	result = format_strings(test_input)
+	if (result != expected_output):
+		print("FAIL: Test of format_strings method failed; expected " + str(expected_output) + " but got " + str(result) + " \n\n\n")
+	else:
+		print("Test passed")
+
+
+
 def encode_string(str):
 	""" 
 	takes in a NavigableString (special type from BeautifulSoup4) and converts to ascii encoded python string
@@ -45,10 +60,16 @@ def format_strings(str):
 	"""
 	takes in a python string and returns array of individual words
 
-	TODO: remove punctuation/numerals/most common words (the, a, it)/capitalization/special chars like \n\n to ensure standardized searching
+	TODO: remove punctuation/numerals/most common words (the, a, it)/capitalization/special chars like \n to ensure standardized searching
 	"""
-	return [encode_string(str)]
-
+	words = str.split(' ')
+	formatted_words = []
+	for word in words:
+		formatted_word = word.lower();
+		formatted_word = formatted_word.strip('.,;:\'\"\n')
+		if (formatted_word != ''):
+			formatted_words.append(formatted_word)
+	return formatted_words
 
 def find_all_text(markup, tag):
 	"""
@@ -59,7 +80,7 @@ def find_all_text(markup, tag):
 	for elem in markup.find_all(tag):
 		string = elem.string
 		if (string != None):
-			text.extend(format_strings(string))
+			text.extend(format_strings(encode_string(string)))
 	return text
 
 def find_text_on_img(markup, tag):
@@ -71,13 +92,13 @@ def find_text_on_img(markup, tag):
 			text.extend(format_strings(alt_text))
 		string = elem.string
 		if (string != None):
-			text.extend(format_strings(string))
+			text.extend(format_strings(encode_string(string)))
 	return text
 
 def main():
 	url = 'https://zanzaban.tumblr.com'
 	response = requests.get(url)
-	html = response.content
+	html = response.content  # type(html): str
 
 	soup = BeautifulSoup(html, 'html.parser')
 	#listelement = soup.find_all('li', attrs={'class':'text-body'})
@@ -100,11 +121,8 @@ def main():
 		print('$$$$$')
 		print(text)
 
-
+run_tests()
 main()
-
-
-
 
 
 
