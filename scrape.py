@@ -1,4 +1,5 @@
 import requests
+import pickle
 from bs4 import BeautifulSoup
 
 """
@@ -32,6 +33,14 @@ TEXT POST (or photo/video within a text post):
 	<ul class="tags"> // optional
 	<li class="post_info">
 """
+
+def save_obj(obj, name):
+	with open('obj/'+ name + '.pkl', 'wb') as f:
+		pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(name):
+	with open('obj/' + name + '.pkl', 'rb') as f:
+		return pickle.load(f)
 
 
 def run_tests():
@@ -120,6 +129,9 @@ def main():
 		# print(post)
 		print('$$$$$')
 		print(text)
+
+	
+	print(type(load_obj('test')))
 
 run_tests()
 main()
