@@ -2,11 +2,6 @@ import requests
 import pickle
 from bs4 import BeautifulSoup
 
-global words_to_ids
-global ids_to_text
-words_to_ids = {}
-ids_to_text = {}
-
 """
 
 VIDEO POST:
@@ -157,9 +152,30 @@ def store(postID, words):
 	keyword : [postID1, postID2...]
 
 	second dictionary?:
-	postID : ( full text ) // make the object a class eventually
+	postID : [ 'full', 'text' ]
 	"""
-	ids_to_text[postID] = 'aaa'
+	if (postID not in ids_to_text):
+		ids_to_text[postID] = words
+		for word in words:
+			if (word not in words_to_ids):
+				words_to_ids[word] = [postID]
+			else:
+				words_to_ids[word].append(postID)
+	else:
+		print("short circuit somehow?")
+
+def create_links(ids):
+	links = ""
+	for postID in ids:
+		links = links + url + "/" + postID + "\n"
+	return links
+
+def search(word):
+	print("searching for the word \"" + str(word) + "\":")
+	if (word not in words_to_ids):
+		return None
+	else:
+		return words_to_ids[word]
 
 def parse_html(html):
 	soup = BeautifulSoup(html, 'html.parser')
@@ -171,15 +187,12 @@ def parse_html(html):
 		postID = post['id']
 		store(encode_string(postID), text)
 
-	print(ids_to_text)
-
 def download_one_page(url):
 	response = requests.get(url)
 	html = response.content
 	parse_html(html)
 
 def download_content(num_pages):
-	url = 'https://zanzaban.tumblr.com'
 	download_one_page(url)
 	i = 2
 	while (i < num_pages):
@@ -187,13 +200,21 @@ def download_content(num_pages):
 		i += 1
 
 def main():
-	download_content(10)
-	save_obj({}, 'words_to_ids')
-	save_obj({}, 'ids_to_text')
-	# = load_obj('name')
+	global url
+	url = 'https://zanzaban.tumblr.com'
 
-run_tests()
+	global words_to_ids
+	global ids_to_text
+	words_to_ids = load_obj('words_to_ids')
+	ids_to_text = load_obj('ids_to_text')
+
+	# download_content(10)
+	print(create_links(search('lizardtitties')))
+	save_obj(words_to_ids, 'words_to_ids')
+	save_obj(ids_to_text, 'ids_to_text')
+
 main()
+# run_tests()
 
 
 
