@@ -2,6 +2,11 @@ import requests
 import pickle
 from bs4 import BeautifulSoup
 
+global words_to_ids
+global ids_to_text
+words_to_ids = {}
+ids_to_text = {}
+
 """
 
 VIDEO POST:
@@ -48,14 +53,18 @@ def run_tests():
 	test_format_strings("This Is ANOTHER TEST",['this','is','another','test'])
 	test_format_strings("This. ,Is, .ANOTHER. TEST.",['this','is','another','test'])
 	test_format_strings("\n\nThis is a test again\n\n.", ['this','is','a','test', 'again'])
-	
-	markup = '<ul class="post-content type-text     " id="184924945881" style="position: absolute; left: 276px; top: 220px;"><li class="content relative"><ul class="post"><li class="text-body lh-copy"><p>this is a test</p></li></ul></li>'
-	expected_words = ['this','is','a','test']
-	test_parse_html(markup, expected_words)
 
-	markup = '<ul class="post-content type-text      is-reblogged" id="184924955921" style="position: absolute; left: 0px; top: 0px;"><li class="content relative"><ul class="post"><li class="text-body lh-copy"><p><a href="https://zanzaban.tumblr.com/post/184924951631/this-is-a-second-test" class="tumblr_blog">zanzaban</a>:</p><blockquote><p>this is a second test</p></blockquote><p>this is a reblog of a test</p></li></ul></li><ul class="tags"><li><a href="https://zanzaban.tumblr.com/tagged/more-different-tags">#more different tags</a></li></ul>'
+	markup1 = '<ul class="post-content type-text     " id="184924945881" style="position: absolute; left: 276px; top: 220px;"><li class="content relative"><ul class="post"><li class="text-body lh-copy"><p>this is a test</p></li></ul></li>'
+	expected_words = ['this','is','a','test']
+	test_find_all_text(markup1, expected_words)
+
+	markup2 = '<ul class="post-content type-text      is-reblogged" id="184924955921" style="position: absolute; left: 0px; top: 0px;"><li class="content relative"><ul class="post"><li class="text-body lh-copy"><p><a href="https://zanzaban.tumblr.com/post/184924951631/this-is-a-second-test" class="tumblr_blog">zanzaban</a>:</p><blockquote><p>this is a second test</p></blockquote><p>this is a reblog of a test</p></li></ul></li><ul class="tags"><li><a href="https://zanzaban.tumblr.com/tagged/more-different-tags">#more different tags</a></li></ul>'
 	expected_words = ['this','is','a','second','test','this','is','a','reblog','of','a','test','zanzaban','more','different','tags']
-	test_parse_html(markup, expected_words)
+	test_find_all_text(markup2, expected_words)
+
+	markup3 = '<ul class="post-content type-text     " id="184924948546" style="position: absolute; left: 552px; top: 0px;"><li class="content relative"><ul class="post"><li class="text-title "><h3 class="post-title"><a href="https://zanzaban.tumblr.com/post/184924948546/this-is-a-title">this is a title</a></h3></li><li class="text-body lh-copy"><p>of a test</p></li></ul></li>'
+	expected_words = ['of','a','test','this','is','a','title']
+	test_find_all_text(markup3, expected_words)
 
 def test_format_strings(test_input, expected_output):
 	result = format_strings(test_input)
@@ -64,10 +73,13 @@ def test_format_strings(test_input, expected_output):
 	else:
 		print("Test passed")
 
-def test_parse_html(test_markup, expected_output):
-	result = parse_html(test_markup)
+def test_find_all_text(test_markup, expected_output):
+	soup = BeautifulSoup(test_markup, 'html.parser')
+	post = soup.find('ul', attrs={'class':'post-content'})
+
+	result = find_all_text(post)
 	if (result != expected_output):
-		print("FAIL: Test of parse_html method failed; expected " + str(expected_output) + " but got " + str(result) + " \n\n")
+		print("FAIL: Test of find_all_text method failed; expected " + str(expected_output) + " but got " + str(result) + " \n\n")
 	else:
 		print("Test passed")
 
@@ -84,7 +96,7 @@ def format_strings(str):
 	takes in a python string and returns array of individual words
 	removes punctuation from beginning and end
 
-	TODO: /numerals/most common words (the, a, it)/capitalization/special chars like \n to ensure standardized searching
+	TODO: /numerals/most common words (the, a, it)
 	TODO: REMOVE PUNCTUATION FROM MIDDLE OF WORD (may split it into 2 words!)
 	"""
 	words = str.split(' ')
@@ -96,7 +108,7 @@ def format_strings(str):
 			formatted_words.append(formatted_word)
 	return formatted_words
 
-def find_all_text(markup, tag):
+def find_text_on_tag(markup, tag):
 	"""
 	takes in the beautifulSoup object and finds all text contained in all tags of type tag (for example, <p/> or <a/>)
 	"""
@@ -120,40 +132,24 @@ def find_text_on_img(markup, tag):
 			text.extend(format_strings(encode_string(string)))
 	return text
 
-def parse_html(html):
-	soup = BeautifulSoup(html, 'html.parser')
-	#listelement = soup.find_all('li', attrs={'class':'text-body'})
-	textposts = soup.find_all('ul', attrs={'class':'post-content'})
-	total_text = []
-	for post in textposts:
-		textbody = post.find('li')
-		# caption = post.find('li', attrs={'class':'caption'})
-		text = []
-		# p = content.find_all('p')
-		if (textbody != None):
-			text = text + find_all_text(textbody, 'p')
-			text = text + find_all_text(textbody, 'a')
-			text = text + find_all_text(textbody, 'h1')
-			text = text + find_all_text(textbody, 'h2')
-			text = text + find_text_on_img(textbody, 'img')
+def find_all_text(post):
+	textbody = post.find('li')
+	# caption = post.find('li', attrs={'class':'caption'})
+	text = []
 
-		tags = post.find('ul', attrs={'class':'tags'})
-		if (tags != None):
-			text = text + find_all_text(tags, 'a')
-			text = text + find_all_text(tags, 'p')
+	if (textbody != None):
+		text = text + find_text_on_tag(textbody, 'p')
+		text = text + find_text_on_tag(textbody, 'a')
+		text = text + find_text_on_tag(textbody, 'h1')
+		text = text + find_text_on_tag(textbody, 'h2')
+		text = text + find_text_on_img(textbody, 'img')
 
-		postID = post['id']
-		
-		total_text.extend(text)
+	tags = post.find('ul', attrs={'class':'tags'})
+	if (tags != None):
+		text = text + find_text_on_tag(tags, 'a')
+		text = text + find_text_on_tag(tags, 'p')
 
-	return total_text
-
-def main():
-	url = 'https://zanzaban.tumblr.com'
-	response = requests.get(url)
-	html = response.content  # type(html): str
-	print(parse_html(html))
-	
+	return text
 
 def store(postID, words):
 	"""
@@ -163,7 +159,38 @@ def store(postID, words):
 	second dictionary?:
 	postID : ( full text ) // make the object a class eventually
 	"""
+	ids_to_text[postID] = 'aaa'
 
+def parse_html(html):
+	soup = BeautifulSoup(html, 'html.parser')
+	#listelement = soup.find_all('li', attrs={'class':'text-body'})
+	textposts = soup.find_all('ul', attrs={'class':'post-content'})
+	
+	for post in textposts:
+		text = find_all_text(post)
+		postID = post['id']
+		store(encode_string(postID), text)
+
+	print(ids_to_text)
+
+def download_one_page(url):
+	response = requests.get(url)
+	html = response.content
+	parse_html(html)
+
+def download_content(num_pages):
+	url = 'https://zanzaban.tumblr.com'
+	download_one_page(url)
+	i = 2
+	while (i < num_pages):
+		download_one_page(url + '/page/' + str(i))
+		i += 1
+
+def main():
+	download_content(10)
+	save_obj({}, 'words_to_ids')
+	save_obj({}, 'ids_to_text')
+	# = load_obj('name')
 
 run_tests()
 main()
