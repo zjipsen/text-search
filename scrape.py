@@ -154,15 +154,12 @@ def store(postID, words):
 	second dictionary?:
 	postID : [ 'full', 'text' ]
 	"""
-	if (postID not in ids_to_text):
-		ids_to_text[postID] = words
-		for word in words:
-			if (word not in words_to_ids):
-				words_to_ids[word] = [postID]
-			else:
-				words_to_ids[word].append(postID)
-	else:
-		print("short circuit somehow?")
+	ids_to_text[postID] = words
+	for word in words:
+		if (word not in words_to_ids):
+			words_to_ids[word] = [postID]
+		else:
+			words_to_ids[word].append(postID)
 
 def create_links(ids):
 	links = ""
@@ -183,20 +180,23 @@ def parse_html(html):
 	textposts = soup.find_all('ul', attrs={'class':'post-content'})
 	
 	for post in textposts:
-		text = find_all_text(post)
-		postID = post['id']
-		store(encode_string(postID), text)
+		postID = encode_string(post['id'])
+		if (postID not in ids_to_text):
+			text = find_all_text(post)
+			store(postID, text)
 
 def download_one_page(url):
 	response = requests.get(url)
 	html = response.content
 	parse_html(html)
 
-def download_content(num_pages):
+def download_content(num_pages, start_page=2):
+	print("downloading page 1...")
 	download_one_page(url)
-	i = 2
+	i = 0
 	while (i < num_pages):
-		download_one_page(url + '/page/' + str(i))
+		print("downloading page " + str(start_page + i) + "...")
+		download_one_page(url + '/page/' + str(start_page + i))
 		i += 1
 
 def main():
@@ -208,8 +208,8 @@ def main():
 	words_to_ids = load_obj('words_to_ids')
 	ids_to_text = load_obj('ids_to_text')
 
-	# download_content(10)
-	print(create_links(search('lizardtitties')))
+	# download_content(25, 99)
+	print(create_links(search('cat')))
 	save_obj(words_to_ids, 'words_to_ids')
 	save_obj(ids_to_text, 'ids_to_text')
 
