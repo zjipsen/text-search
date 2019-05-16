@@ -3,12 +3,10 @@ usage: python scrape.py
 The goal of this script is to have a way to search through ALL text content on my blog,
 including tags, comments, quotes, and titles, not just through specific tags or by scrolling through the archive.
 
-Images are hopeless and I know this.
-
 Loosely based on https://first-web-scraper.readthedocs.io/en/latest/
 
 Edge cases:
-'it', 'an', 'a', 'the', punctuation, apostrophes (they get turned into \u2019)
+'it', 'an', 'a', 'the'
 
 Input options:
 search for multiple words appearing in the same post (order irrelevant)
@@ -33,7 +31,7 @@ dictionary:
 keyword : [postID1, postID2...]
 
 second dictionary:
-postID : ( full text, date ) // make the object a class eventually
+postID : ( full text ) // make the object a class eventually
 
 DOWNLOAD STAGE:
 

@@ -48,14 +48,28 @@ def run_tests():
 	test_format_strings("This Is ANOTHER TEST",['this','is','another','test'])
 	test_format_strings("This. ,Is, .ANOTHER. TEST.",['this','is','another','test'])
 	test_format_strings("\n\nThis is a test again\n\n.", ['this','is','a','test', 'again'])
+	
+	markup = '<ul class="post-content type-text     " id="184924945881" style="position: absolute; left: 276px; top: 220px;"><li class="content relative"><ul class="post"><li class="text-body lh-copy"><p>this is a test</p></li></ul></li>'
+	expected_words = ['this','is','a','test']
+	test_parse_html(markup, expected_words)
+
+	markup = '<ul class="post-content type-text      is-reblogged" id="184924955921" style="position: absolute; left: 0px; top: 0px;"><li class="content relative"><ul class="post"><li class="text-body lh-copy"><p><a href="https://zanzaban.tumblr.com/post/184924951631/this-is-a-second-test" class="tumblr_blog">zanzaban</a>:</p><blockquote><p>this is a second test</p></blockquote><p>this is a reblog of a test</p></li></ul></li><ul class="tags"><li><a href="https://zanzaban.tumblr.com/tagged/more-different-tags">#more different tags</a></li></ul>'
+	expected_words = ['this','is','a','second','test','this','is','a','reblog','of','a','test','zanzaban','more','different','tags']
+	test_parse_html(markup, expected_words)
 
 def test_format_strings(test_input, expected_output):
 	result = format_strings(test_input)
 	if (result != expected_output):
-		print("FAIL: Test of format_strings method failed; expected " + str(expected_output) + " but got " + str(result) + " \n\n\n")
+		print("FAIL: Test of format_strings method failed; expected " + str(expected_output) + " but got " + str(result) + " \n\n")
 	else:
 		print("Test passed")
 
+def test_parse_html(test_markup, expected_output):
+	result = parse_html(test_markup)
+	if (result != expected_output):
+		print("FAIL: Test of parse_html method failed; expected " + str(expected_output) + " but got " + str(result) + " \n\n")
+	else:
+		print("Test passed")
 
 
 def encode_string(str):
@@ -68,14 +82,16 @@ def encode_string(str):
 def format_strings(str):
 	"""
 	takes in a python string and returns array of individual words
+	removes punctuation from beginning and end
 
-	TODO: remove punctuation/numerals/most common words (the, a, it)/capitalization/special chars like \n to ensure standardized searching
+	TODO: /numerals/most common words (the, a, it)/capitalization/special chars like \n to ensure standardized searching
+	TODO: REMOVE PUNCTUATION FROM MIDDLE OF WORD (may split it into 2 words!)
 	"""
 	words = str.split(' ')
 	formatted_words = []
 	for word in words:
 		formatted_word = word.lower();
-		formatted_word = formatted_word.strip('.,;:\'\"\n')
+		formatted_word = formatted_word.strip('.!?,;:#\'\"\n')
 		if (formatted_word != ''):
 			formatted_words.append(formatted_word)
 	return formatted_words
@@ -98,21 +114,17 @@ def find_text_on_img(markup, tag):
 	for elem in markup.find_all(tag):
 		if (u'alt' in elem.attrs):
 			alt_text = elem.attrs[u'alt']
-			text.extend(format_strings(alt_text))
+			text.extend(format_strings(encode_string(alt_text)))
 		string = elem.string
 		if (string != None):
 			text.extend(format_strings(encode_string(string)))
 	return text
 
-def main():
-	url = 'https://zanzaban.tumblr.com'
-	response = requests.get(url)
-	html = response.content  # type(html): str
-
+def parse_html(html):
 	soup = BeautifulSoup(html, 'html.parser')
 	#listelement = soup.find_all('li', attrs={'class':'text-body'})
 	textposts = soup.find_all('ul', attrs={'class':'post-content'})
-
+	total_text = []
 	for post in textposts:
 		textbody = post.find('li')
 		# caption = post.find('li', attrs={'class':'caption'})
@@ -125,13 +137,33 @@ def main():
 			text = text + find_all_text(textbody, 'h2')
 			text = text + find_text_on_img(textbody, 'img')
 
-		postID = post['id']
-		# print(post)
-		print('$$$$$')
-		print(text)
+		tags = post.find('ul', attrs={'class':'tags'})
+		if (tags != None):
+			text = text + find_all_text(tags, 'a')
+			text = text + find_all_text(tags, 'p')
 
+		postID = post['id']
+		
+		total_text.extend(text)
+
+	return total_text
+
+def main():
+	url = 'https://zanzaban.tumblr.com'
+	response = requests.get(url)
+	html = response.content  # type(html): str
+	print(parse_html(html))
 	
-	print(type(load_obj('test')))
+
+def store(postID, words):
+	"""
+	dictionary:
+	keyword : [postID1, postID2...]
+
+	second dictionary?:
+	postID : ( full text ) // make the object a class eventually
+	"""
+
 
 run_tests()
 main()
