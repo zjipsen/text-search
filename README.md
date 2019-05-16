@@ -18,10 +18,7 @@ search for multiple words appearing in the same post (order irrelevant)
 // ordered phrases somehow
 
 Returns:
-links to all possible posts it could be
-
-by default, it should only search through the first like....400 pages i guess? 
-page 900 is currently december 2014, so i highly doubt i'll need to search beyond page 400.
+(clickable?) links to all possible posts it could be
 
 I should really be using python3 for this, but 'import requests' failed.
 
@@ -42,5 +39,10 @@ SEARCH PHASE:
 1. lookup all keywords
 2. intersection of return sets
 3. get more details
-4. return links + dates + full text
+4. return links + full text
+
+
+
+boy......is this html hard to parse lmao
+i need a filterable attribute on the tag objects that get returned by beautifulSoup. does....anyone have that
 
