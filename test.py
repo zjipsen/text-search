@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from formatters import format_strings, find_all_text
+from scrape import format_strings, find_all_text
 
 def run_tests():
 	test_format_strings("this is a test",['this','is','a','test'])
