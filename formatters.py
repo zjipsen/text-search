@@ -55,6 +55,9 @@ def find_all_text(post):
 
 	if (textbody != None):
 		text = text + find_text_on_tag(textbody, 'p')
+		text = text + find_text_on_tag(textbody, 'b')
+		text = text + find_text_on_tag(textbody, 'i')
+		text = text + find_text_on_tag(textbody, 'small')
 		text = text + find_text_on_tag(textbody, 'a')
 		text = text + find_text_on_tag(textbody, 'h1')
 		text = text + find_text_on_tag(textbody, 'h2')
@@ -66,28 +69,3 @@ def find_all_text(post):
 		text = text + find_text_on_tag(tags, 'p')
 
 	return text
-
-	def parse_html(html):
-	soup = BeautifulSoup(html, 'html.parser')
-	#listelement = soup.find_all('li', attrs={'class':'text-body'})
-	textposts = soup.find_all('ul', attrs={'class':'post-content'})
-	
-	for post in textposts:
-		postID = encode_string(post['id'])
-		if (postID not in ids_to_text):
-			text = find_all_text(post)
-			store(postID, text)
-
-def download_one_page(url):
-	response = requests.get(url)
-	html = response.content
-	parse_html(html)
-
-def download_content(num_pages, start_page=2):
-	print("downloading page 1...")
-	download_one_page(url)
-	i = 0
-	while (i < num_pages):
-		print("downloading page " + str(start_page + i) + "...")
-		download_one_page(url + '/page/' + str(start_page + i))
-		i += 1

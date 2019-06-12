@@ -1,12 +1,9 @@
 usage: python scrape.py
 
-The goal of this script is to have a way to search through ALL text content on my blog,
+The goal of this script is to have a way to search through ALL text content on tumblr blogs,
 including tags, comments, quotes, and titles, not just through specific tags or by scrolling through the archive.
 
 Loosely based on https://first-web-scraper.readthedocs.io/en/latest/
-
-Edge cases:
-'it', 'an', 'a', 'the'
 
 Input options:
 search for multiple words appearing in the same post (order irrelevant)
@@ -18,9 +15,7 @@ search for multiple words appearing in the same post (order irrelevant)
 // ordered phrases somehow
 
 Returns:
-(clickable?) links to all possible posts it could be
-
-I should really be using python3 for this, but 'import requests' failed.
+clickable links to all possible posts it could be
 
 DATA STORAGE:
 
@@ -30,19 +25,8 @@ keyword : [postID1, postID2...]
 second dictionary:
 postID : ( full text ) // make the object a class eventually
 
-DOWNLOAD STAGE:
-
-download the first 1 pages and add the content as described above. (later, 400 pages)
-
-SEARCH PHASE:
+SEARCH:
 
 1. lookup all keywords
-2. intersection of return sets
-3. get more details
-4. return links + full text
-
-
-
-boy......is this html hard to parse lmao
-i need a filterable attribute on the tag objects that get returned by beautifulSoup. does....anyone have that
-
+2. intersection (or union, based on arguments) of return sets
+3. return links + post text
