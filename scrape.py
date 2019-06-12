@@ -1,73 +1,7 @@
 import pickle
 import requests
 from bs4 import BeautifulSoup
-
-def encode_string(str):
-	""" 
-	takes in a NavigableString (special type from BeautifulSoup4) and converts to ascii encoded python string
-	"""
-	return unicode(str).encode('ascii','ignore')
-
-
-def format_strings(str):
-	"""
-	takes in a python string and returns array of individual words
-	removes punctuation from beginning and end
-
-	TODO: /numerals/most common words (the, a, it)
-	TODO: REMOVE PUNCTUATION FROM MIDDLE OF WORD (may split it into 2 words!)
-	"""
-	words = str.split(' ')
-	formatted_words = []
-	for word in words:
-		formatted_word = word.lower();
-		formatted_word = formatted_word.strip('.!?*()&^%$@,;:#\'\"\n')
-		if (formatted_word != ''):
-			formatted_words.append(formatted_word)
-	return formatted_words
-
-def find_text_on_tag(markup, tag):
-	"""
-	takes in the beautifulSoup object and finds all text contained in all tags of type tag (for example, <p/> or <a/>)
-	"""
-	text = []
-
-	for elem in markup.find_all(tag):
-		string = elem.string
-		if (string != None):
-			text.extend(format_strings(encode_string(string)))
-	return text
-
-def find_text_on_img(markup, tag):
-	text = []
-
-	for elem in markup.find_all(tag):
-		if (u'alt' in elem.attrs):
-			alt_text = elem.attrs[u'alt']
-			text.extend(format_strings(encode_string(alt_text)))
-		string = elem.string
-		if (string != None):
-			text.extend(format_strings(encode_string(string)))
-	return text
-
-def find_all_text(post):
-	textbody = post.find('li')
-	# caption = post.find('li', attrs={'class':'caption'})
-	text = []
-
-	if (textbody != None):
-		text = text + find_text_on_tag(textbody, 'p')
-		text = text + find_text_on_tag(textbody, 'a')
-		text = text + find_text_on_tag(textbody, 'h1')
-		text = text + find_text_on_tag(textbody, 'h2')
-		text = text + find_text_on_img(textbody, 'img')
-
-	tags = post.find('ul', attrs={'class':'tags'})
-	if (tags != None):
-		text = text + find_text_on_tag(tags, 'a')
-		text = text + find_text_on_tag(tags, 'p')
-
-	return text
+from formatters import *
 
 def parse_html(html):
 	soup = BeautifulSoup(html, 'html.parser')
@@ -187,8 +121,8 @@ def create_links(ids):
 		links = links + url + "/" + postID + "\n"
 	return links
 
-def search(words):
-	print("searching for the words \"" + str(words) + "\":")
+def search_intersection(words):
+	print("searching for posts including the words \"" + str(words) + "\":")
 	words = words.split(' ')
 	intersect = None
 	for word in words:
@@ -196,9 +130,23 @@ def search(words):
 			if (intersect == None):
 				intersect = words_to_ids[word]
 			intersect = words_to_ids[word].intersection(intersect)
+		else:
+			return None
+
 	if (intersect == None):
 		return None
 	return create_links(intersect)
+
+def search_union(words):
+	print("searching for posts including one or more of the words \"" + str(words) + "\":")
+	words = words.split(' ')
+	union = set([])
+	for word in words:
+		if (word in words_to_ids):
+			union = union.union(words_to_ids[word])
+	if (len(union) == 0):
+		return None
+	return create_links(union)
 
 def main():
 	global url
@@ -208,10 +156,11 @@ def main():
 	global ids_to_text
 	words_to_ids = load_obj('words_to_ids')
 	ids_to_text = load_obj('ids_to_text')
+	clear_dictionaries()
 
 	# download_content(100)
-	query = 'tiktok'
-	search_results = search(query)
+	query = 'phenomenon'
+	search_results = search_union(query)
 	print(search_results if (search_results) else "No results found for the query \"" + str(query) + "\"")
 	save_dictionaries()
 
