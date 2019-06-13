@@ -1,3 +1,5 @@
+# tumblr-scraper
+
 usage: python scrape.py
 
 The goal of this script is to have a way to search through ALL text content on tumblr blogs,
