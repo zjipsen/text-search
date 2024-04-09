@@ -1,26 +1,26 @@
 from bs4 import BeautifulSoup
 
-def encode_string(str):
+def encode_string(nav_string):
 	""" 
-	takes in a NavigableString (special type from BeautifulSoup4) and converts to ascii encoded python string
+	takes in a NavigableString (special type from BeautifulSoup4) and converts to utf encoded python string
 	"""
-	return unicode(str).encode('ascii','ignore')
+	return nav_string.encode("utf-8", "ignore")
 
 
-def format_strings(str):
+def format_strings(raw_str):
 	"""
-	takes in a python string and returns array of individual words
+	takes in a python string and returns list of individual words
 	removes punctuation from beginning and end
 
 	TODO: /numerals/most common words (the, a, it)
 	TODO: REMOVE PUNCTUATION FROM MIDDLE OF WORD (may split it into 2 words!)
 	"""
-	words = str.split(' ')
+	words = raw_str.split(' ')
 	formatted_words = []
 	for word in words:
-		formatted_word = word.lower();
+		formatted_word = word.lower()
 		formatted_word = formatted_word.strip('.!?*()&^%$@,;:#\'\"\n')
-		if (formatted_word != ''):
+		if formatted_word:
 			formatted_words.append(formatted_word)
 	return formatted_words
 

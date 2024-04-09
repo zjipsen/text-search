@@ -1,4 +1,4 @@
-# tumblr-scraper
+# text-search
 
 usage: python scrape.py
 

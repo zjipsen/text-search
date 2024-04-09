@@ -150,15 +150,15 @@ def search_union(words):
 
 def main():
 	global url
-	url = 'https://zanzaban.tumblr.com'
+	url = 'https://johnlacena.tumblr.com'
 
 	global words_to_ids
 	global ids_to_text
 	words_to_ids = load_obj('words_to_ids')
 	ids_to_text = load_obj('ids_to_text')
-	clear_dictionaries()
+	# clear_dictionaries()
 
-	# download_content(100)
+	download_content(100)
 	query = 'phenomenon'
 	search_results = search_union(query)
 	print(search_results if (search_results) else "No results found for the query \"" + str(query) + "\"")
