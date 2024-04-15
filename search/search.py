@@ -83,11 +83,11 @@ TEXT POST (or photo/video within a text post):
 """
 
 def save_obj(obj, name):
-	with open('obj/'+ name + '.pkl', 'wb') as f:
+	with open('./obj/'+ name + '.pkl', 'wb') as f:
 		pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 def load_obj(name):
-	with open('obj/' + name + '.pkl', 'rb') as f:
+	with open('./obj/' + name + '.pkl', 'rb') as f:
 		return pickle.load(f)
 
 def clear_dictionaries():
@@ -158,11 +158,12 @@ def main():
 	ids_to_text = load_obj('ids_to_text')
 	# clear_dictionaries()
 
-	download_content(100)
+	download_content(10)
 	query = 'phenomenon'
 	search_results = search_union(query)
 	print(search_results if (search_results) else "No results found for the query \"" + str(query) + "\"")
 	save_dictionaries()
+	print(words_to_ids)
 
 
 if __name__ == '__main__':
