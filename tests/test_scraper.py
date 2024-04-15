@@ -3,6 +3,11 @@ import os
 from search.scraper import Saver, Scraper
 from pytest import approx
 
+def test_instantiate_scraper():
+    url = "www.google.com"
+    scraper = Scraper(url)
+    assert scraper.url == url
+    assert scraper.url is url
 
 def write_pickle_obj(obj, filepath):
     with open(filepath, "wb") as f:
@@ -12,12 +17,6 @@ def write_test_data(test_data_path):
     words_to_ids = {"cat": [1, 2], "dog": [3]}
     write_pickle_obj(words_to_ids, os.path.join(test_data_path, "words_to_ids.pkl"))
     return words_to_ids
-
-def test_instantiate_scraper():
-    url = "www.google.com"
-    scraper = Scraper(url)
-    assert scraper.url == url
-    assert scraper.url is url
 
 def test_load_files_successfully(tmp_path):
     saver = Saver(target_dir=tmp_path, name="words_to_ids")
